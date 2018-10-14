@@ -4,6 +4,8 @@ setmetatable(_G, {
 	end
 })
 
+local sqrt, sin, cos, pi = math.sqrt, math.sin, math.cos, math.pi
+
 function love.load()
 end
 
@@ -11,32 +13,17 @@ function love.update(dt)
 
 end
 
-local R32 = math.sqrt(3) / 2
-local HEXAGON_EDGES = {
-	-1, 0,
-	-0.5, R32,
-	0.5, R32,
-	1, 0,
-	0.5, -R32,
-	-0.5, -R32
-}
-
-function getHexagonEdge(i)
-	local x0, y0 = HEXAGON_EDGES[2*i-1], HEXAGON_EDGES[2*i]
-	local x1, y1
-	if i == 6 then
-		x1, y1 = HEXAGON_EDGES[1], HEXAGON_EDGES[2]
-	else
-		x1, y1 = HEXAGON_EDGES[2*i+1], HEXAGON_EDGES[2*i+2]
-	end
-	return x0, y0, x1, y1
+function getHexagonEdge(i, radius, angularOffset)
+	local p0Angle = i * pi/3 + angularOffset
+	local p1Angle = (i + 1) * pi/3 + angularOffset
+	return radius * cos(p0Angle), radius * sin(p0Angle), 
+		radius * cos(p1Angle), radius * sin(p1Angle)
 end
 
-function getHexagonSegment(i, scale)
-	local x0, y0, x1, y1 = getHexagonEdge(i)
-	local a = 1.0 * scale
-	local b = 0.8 * scale
-	return a*x0, a*y0, a*x1, a*y1, b*x1, b*y1, b*x0, b*y0
+function getHexagonSegment(i, radius, angularOffset)
+	local x0, y0, x1, y1 = getHexagonEdge(i, radius, angularOffset)
+	local x3, y3, x2, y2 = getHexagonEdge(i, radius + 0.1, angularOffset)
+	return x0, y0, x1, y1, x2, y2, x3, y3
 end
 
 function makeHexagon(criteria)
@@ -54,7 +41,7 @@ function drawHexagon(hexagon)
 	
 	love.graphics.setColor(0.3, 0.2, 0.8, 1.0)
 	for _, segment in ipairs(hexagon) do
-		love.graphics.polygon('fill', getHexagonSegment(segment, hexagon.scale))
+		love.graphics.polygon('fill', getHexagonSegment(segment, hexagon.scale, 0))
 	end
 
 	love.graphics.pop()
