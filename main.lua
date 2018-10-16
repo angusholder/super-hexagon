@@ -6,11 +6,18 @@ setmetatable(_G, {
 
 local sqrt, sin, cos, pi = math.sqrt, math.sin, math.cos, math.pi
 
+local hexagons = {}
 function love.load()
+	for i = 1, 60 do
+		local foo = i % 6
+		hexagons[i] = makeHexagon(function(n) return n ~= foo end, i * 0.5 - 0.4)
+	end
 end
 
 function love.update(dt)
-
+	for i, hex in ipairs(hexagons) do 
+		hex.radius = hex.radius - dt * 0.7
+	end
 end
 
 function getHexagonEdge(i, radius, angularOffset)
@@ -26,9 +33,9 @@ function getHexagonSegment(i, radius, angularOffset)
 	return x0, y0, x1, y1, x2, y2, x3, y3
 end
 
-function makeHexagon(criteria)
-	local result = {}
-	for i=1,6 do
+function makeHexagon(criteria, radius)
+	local result = { radius = radius }
+	for i=0,5 do
 		if criteria(i) then
 			table.insert(result, i)
 		end
@@ -41,7 +48,9 @@ function drawHexagon(hexagon)
 	
 	love.graphics.setColor(0.3, 0.2, 0.8, 1.0)
 	for _, segment in ipairs(hexagon) do
-		love.graphics.polygon('fill', getHexagonSegment(segment, hexagon.scale, 0))
+		if hexagon.radius > 0.1 then
+			love.graphics.polygon('fill', getHexagonSegment(segment, hexagon.radius, 0))
+		end
 	end
 
 	love.graphics.pop()
@@ -63,12 +72,9 @@ function love.draw()
 	love.graphics.setColor(0.2, 0.8, 0.0, 1.0)
 	love.graphics.rectangle('fill', -1, -1, 0.25, 0.25)
 
-	drawHexagon {    2, 3, 4, 5, 6, scale = 0.1 }
-	drawHexagon { 1,    3, 4, 5, 6, scale = 0.4 }
-	drawHexagon { 1, 2,    4, 5, 6, scale = 0.7 }
-	drawHexagon { 1, 2, 3,    5, 6, scale = 1.0 }
-	drawHexagon { 1, 2, 3, 4,    6, scale = 1.3 }
-	drawHexagon { 1, 2, 3, 4, 5   , scale = 1.6 }
+	for i, hex in ipairs(hexagons) do
+		drawHexagon(hex)
+	end
 
 	love.graphics.pop()
 end
